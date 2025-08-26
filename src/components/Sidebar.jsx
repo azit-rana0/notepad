@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaPlusCircle, FaBars } from "react-icons/fa";
 import { MdDelete, MdPushPin } from "react-icons/md";
 
@@ -10,7 +10,7 @@ export default function Sidebar({
   currentActiveNoteId,
   sidebarOpen,
   setSidebarOpen,
-  togglePin, // 👈 NEW
+  togglePin,
 }) {
   const [search, setSearch] = useState("");
 
@@ -27,7 +27,7 @@ export default function Sidebar({
       key={note.id}
       onClick={() => {
         setCurrentActiveNoteId(note.id);
-        setSidebarOpen(false); // close sidebar after selecting
+        setSidebarOpen(false);
       }}
       className={`flex justify-between items-center border-b px-2 py-2 text-lg cursor-pointer ${
         note.id === currentActiveNoteId ? "bg-blue-500 text-white" : ""
