@@ -1,27 +1,29 @@
-import ReactMde from "react-mde";
-import * as Showdown from "showdown";
-import "react-mde/lib/styles/css/react-mde-all.css";
-import { useState } from "react";
+import MDEditor from "@uiw/react-md-editor";
 
 export default function Editor({ currentNote, updateNote }) {
-  const [selectedTab, setSelectedTab] = useState("write");
-  const converter = new Showdown.Converter({
-    tables: true,
-    simplifiedAutoLink: true,
-    strikethrough: true,
-    tasklists: true,
-  });
   return (
-    <div className="w-full h-screen text-[14px]">
-      <ReactMde
-        value={currentNote.body}
-        onChange={updateNote}
-        selectedTab={selectedTab}
-        onTabChange={setSelectedTab}
-        generateMarkdownPreview={(markdown) =>
-          Promise.resolve(converter.makeHtml(markdown))
-        }
-      />
+    <div className="w-full h-full text-[14px] bg-white" data-color-mode="light">
+      {/* Desktop */}
+      <div className="hidden md:block h-full">
+        <MDEditor
+          value={currentNote.body}
+          onChange={updateNote}
+          height="100%"
+        />
+      </div>
+
+      {/* Mobile */}
+      <div className="flex flex-col md:hidden h-full">
+        <textarea
+          value={currentNote.body}
+          onChange={(e) => updateNote(e.target.value)}
+          className="w-full h-1/2 border-b p-2 outline-none resize-none text-sm"
+          placeholder="Write your note here..."
+        />
+        <div className="h-1/2 overflow-y-auto p-2 bg-gray-50">
+          <MDEditor.Markdown source={currentNote.body} />
+        </div>
+      </div>
     </div>
   );
 }

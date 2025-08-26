@@ -1,89 +1,98 @@
+import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
-import { useEffect, useState } from "react";
-import Split from "react-split";
 import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 
-function App() {
+export default function App() {
   const [notes, setNotes] = useState(
     () => JSON.parse(localStorage.getItem("notes")) || []
   );
   const [currentActiveNoteId, setCurrentActiveNoteId] = useState(
     notes[0]?.id || null
   );
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("notes", JSON.stringify(notes));
   }, [notes]);
 
-  const handleCreate = () => {
-    const newData = {
+  function handleCreate() {
+    const newNote = {
       id: nanoid(),
-      body: "# Enter title here \n\n",
+      body: "# Enter title here\n\n",
+      pinned: false,
     };
-    setNotes((prevsNote) => [...prevsNote, newData]);
-    setCurrentActiveNoteId(newData.id);
-  };
+    setNotes((prev) => [...prev, newNote]);
+    setCurrentActiveNoteId(newNote.id);
+  }
 
-  const handleDelete = (id) => {
-    setNotes((prevNotes) => {
-      const updatedNotes = prevNotes.filter((note) => note.id !== id);
-
-      // Reset active note if the deleted one was active
+  function handleDelete(id) {
+    setNotes((prev) => {
+      const updated = prev.filter((note) => note.id !== id);
       if (id === currentActiveNoteId) {
-        setCurrentActiveNoteId(updatedNotes[0]?.id || null);
+        setCurrentActiveNoteId(updated[0]?.id || null);
       }
-
-      return updatedNotes;
+      return updated;
     });
-  };
+  }
 
-  const findCurrentNote = () => {
+  function findCurrentNote() {
     return notes.find((note) => note.id === currentActiveNoteId);
-  };
+  }
 
-  const updateNote = (text) => {
-    setNotes((prevsNote) => {
-      let arr = [];
-      for (let i = 0; i < prevsNote.length; i++) {
-        if (prevsNote[i].id === currentActiveNoteId) {
-          arr.push({ ...prevsNote[i], body: text });
-        } else {
-          arr.push(prevsNote[i]);
-        }
-      }
-      return arr;
-    });
-  };
+  function updateNote(text) {
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === currentActiveNoteId ? { ...note, body: text } : note
+      )
+    );
+  }
 
-  return (
+  function togglePin(id) {
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === id ? { ...note, pinned: !note.pinned } : note
+      )
+    );
+  }
+
+  return notes.length > 0 ? (
     <>
-      {notes.length > 0 ? (
-        <Split className="flex" sizes={[15, 85]} direction="horizontal">
-          <Sidebar
-            notes={notes}
-            create={handleCreate}
-            setCurrentActiveNoteId={setCurrentActiveNoteId}
-            handleDelete={handleDelete}
-            currentActiveNoteId={currentActiveNoteId}
-          />
-          {currentActiveNoteId && (
-            <Editor currentNote={findCurrentNote()} updateNote={updateNote} />
-          )}
-        </Split>
-      ) : (
-        <div className="w-screen h-screen flex flex-col justify-center items-center gap-8">
-          <h1 className="text-4xl font-bold">You have no notes</h1>
-          <button
-            className="cursor-pointer bg-[#3d91e7] text-white text-2xl px-10 py-3 rounded-full font-medium"
-            onClick={handleCreate}
+      <div className="h-screen flex flex-col md:flex-row">
+        {/* Sidebar */}
+        <Sidebar
+          notes={notes}
+          create={handleCreate}
+          handleDelete={handleDelete}
+          setCurrentActiveNoteId={setCurrentActiveNoteId}
+          currentActiveNoteId={currentActiveNoteId}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          togglePin={togglePin}
+        />
+
+        {/* Editor */}
+        {currentActiveNoteId && (
+          <div
+            className={`flex-1 transition-all duration-500   ${
+              sidebarOpen ? "blur-sm pointer-events-none" : ""
+            } md:blur-0 md:pointer-events-auto`}
+            onClick={() => setSidebarOpen(false)}
           >
-            Create one now
-          </button>
-        </div>
-      )}
+            <Editor currentNote={findCurrentNote()} updateNote={updateNote} />
+          </div>
+        )}
+      </div>
     </>
+  ) : (
+    <div className="w-screen h-screen flex flex-col justify-center items-center gap-8">
+      <h1 className="text-4xl font-bold">You have no notes</h1>
+      <button
+        onClick={handleCreate}
+        className="bg-blue-500 text-white text-2xl px-10 py-3 rounded-full"
+      >
+        Create One Now
+      </button>
+    </div>
   );
 }
-
-export default App;
